@@ -22,7 +22,7 @@ passportRouter.post("/", passport.authenticate("local", {
 
 /* Profile */
 passportRouter.get("/profile", (req, res, next) => {
-  res.render("profile");
+  res.render("profile", { user: req.user });
 });
 
 /* Profile */
@@ -31,10 +31,10 @@ passportRouter.get("/signup", (req,res,next) => {
 })
 
 passportRouter.post('/signup', (req, res, next) => {
-
   const {
     username,
-    password
+    password,
+    email
   } = req.body;
 
   User.findOne({
@@ -51,6 +51,7 @@ passportRouter.post('/signup', (req, res, next) => {
     const newUser = new User ({
       username,
       password: hashPass,
+      email
     });
 
     return newUser.save()
