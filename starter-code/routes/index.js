@@ -1,7 +1,7 @@
 const express = require('express');
-const passportRouter = express.Router();
+const route = express.Router();
 
-const User = require("../models/user")
+const Band = require("../models/band")
 
 const bcrypt = require('bcrypt');
 const passport = require('passport');
@@ -11,66 +11,75 @@ const mongoose     = require('mongoose');
 const { ensureLoggedIn, ensureLoggedOut } = require('connect-ensure-login');
 
 /* Home page */
-passportRouter.get("/", (req, res, next) => {
+route.get("/", (req, res, next) => {
   res.render("index");
 });
 
-passportRouter.post("/", passport.authenticate("local", {
-  successRedirect: "/profile",
-  failureRedirect: "/"
-}))
-
-/* Profile */
-passportRouter.get("/profile", (req, res, next) => {
-  res.render("profile", { user: req.user });
+route.get("/login-band", (req, res, next) => {
+  res.render("login");
 });
 
+route.post("/login-band", passport.authenticate("local", {
+  successRedirect: "/profile-band",
+  failureRedirect: "/login-band"
+}))
+
+// passportRouter.post("/", passport.authenticate("local", {
+//   successRedirect: "/profile",
+//   failureRedirect: "/"
+// }))
+
 /* Profile */
-passportRouter.get("/signup", (req,res,next) => {
-  res.render("signup");
+route.get("/profile-band", (req, res, next) => {
+  res.render("profile-band", { band: req.band });
+});
+
+/* Signup */
+route.get("/signup-band", (req,res,next) => {
+  res.render("signup-band");
 })
 
-passportRouter.post('/signup', (req, res, next) => {
+route.post('/signup-band', (req, res, next) => {
   const {
-    username,
+    name,
     password,
-    email
+    contact
   } = req.body;
 
-  User.findOne({
-    username
+  Band.findOne({
+    name
   })
-  .then(user => {
-    if (user !== null){
-      throw new error("Username already Exists");
+  .then(band => {
+    if (band !== null){
+      throw new error("Bandname already Exists");
     }
 
     const salt = bcrypt.genSaltSync(10);
     const hashPass = bcrypt.hashSync(password, salt);
 
-    const newUser = new User ({
-      username,
+    const newBand = new Band ({
+      name,
       password: hashPass,
-      email
+      contact
     });
 
-    return newUser.save()
+    return newBand.save()
 
   })
-    .then (user => {
-      res.redirect("/profile");
+    .then (band => {
+      res.redirect("/profile-band");
     })
     .catch(err => {
-      res.render("/signup"), {
+      res.render("/signup-band"), {
         errorMessage: err.message
       }
     })
 }) 
 
-passportRouter.get("/logout", ensureLoggedIn("/"), (req, res) => {
+route.get("/logout", ensureLoggedIn("/"), (req, res) => {
   req.logout();
   res.redirect("/");
 });
 
 
-module.exports = passportRouter;
+module.exports = route;
